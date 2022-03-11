@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Generic, List, TypeVar
+from typing import Any, Generic, List, Tuple, TypeVar
 
 import serial
 
@@ -20,7 +20,7 @@ class ConfigWriter(Generic[CommandType]):
     def device_description(cls: 'ConfigWriter') -> str:
         raise NotImplementedError()
 
-    def write(self, data: CommandType) -> bool:
+    def write(self, data: CommandType, read_back: int = 0) -> Tuple[bool, Any]:
         raise NotImplementedError()
 
 
@@ -29,8 +29,8 @@ class TestWriter(ConfigWriter[Any]):
     def device_description(cls: 'TestWriter') -> str:
         return "Test"
 
-    def write(self, data: CommandType) -> bool:
-        return True
+    def write(self, data: CommandType, read_back: int = 0) -> Tuple[bool, Any]:
+        return True, [1, 2] if read_back > 0 else None
 
 
 class UARTWriter(ConfigWriter[List[Any]]):
@@ -45,7 +45,7 @@ class UARTWriter(ConfigWriter[List[Any]]):
     def device_description(cls: 'UARTWriter') -> str:
         return "USB-to-UART converter"
 
-    def write(self, data: List[Any]) -> bool:
+    def write(self, data: List[Any], read_back: int = 0) -> Tuple[bool, Any]:
         """
         Write data commands to serial port.
 
@@ -56,32 +56,40 @@ class UARTWriter(ConfigWriter[List[Any]]):
         :return: Flag to indicate whether the write data to serial was successful or not
         """
 
-        ser = serial.Serial(
+        with serial.Serial(
             port=self._device_name,
             baudrate=115200,
             bytesize=serial.EIGHTBITS,
             parity=serial.PARITY_NONE,
-            timeout=20,
+            timeout=30,
             write_timeout=2,
-        )
+        ) as ser:
 
-        for command in data:
-            x = bytes(command)
-            ser.write(x)
-            time.sleep(0.1)
+            for command in data:
+                x = bytes(command)
+                ser.write(x)
+                time.sleep(0.1)
 
-        condition = ser.read(size=1)
-        ser.close()
+            condition = ser.read(size=1)
 
-        try:
-            condition = list(condition)[0]
-        except IndexError:
-            logging.error('Failed to read condition message from board')
-            return False
-        else:
-            if condition == 1:
-                logging.info('Success setting configuration in EEPROM')
-                return True
-            elif condition == 2:
-                logging.error('Failed saving configuration in EEPROM')
-                return False
+            try:
+                condition = list(condition)[0]
+            except IndexError:
+                logging.error('Failed to read condition message from board')
+                return False, None
+            else:
+                if read_back == 0:
+                    if condition == 1:
+                        logging.info('Success setting configuration in EEPROM')
+                        return True, None
+                    elif condition == 2:
+                        logging.error('Failed saving configuration in EEPROM')
+                        return False, None
+                else:
+                    if condition == 1:
+                        logging.info('Success reading configuration from switch')
+                        data = ser.read(size=read_back)
+                        return True, list(data)
+                    elif condition == 2:
+                        logging.error('Failed reading configuration from switch')
+                        return False, None

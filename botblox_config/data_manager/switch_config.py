@@ -1,5 +1,6 @@
+import logging
 from argparse import Action, Namespace
-from typing import List
+from typing import Any, List
 
 from ..switch import Port, SwitchChip
 
@@ -39,6 +40,8 @@ class SwitchConfigCLI:
     def __init__(self, subparsers: Action, switch: SwitchChip) -> None:
         self._subparsers = subparsers
         self._switch = switch
+        self.append_stop = True
+        self.read_back = 0
 
     def apply(self, args: Namespace) -> 'SwitchConfigCLI':
         """
@@ -55,3 +58,6 @@ class SwitchConfigCLI:
         :return: A SwitchConfig parsed from the CLI args passed previously to apply().
         """
         raise NotImplementedError()
+
+    def process_response(self, data: Any):
+        logging.info(f'Data read from switch is {data}')

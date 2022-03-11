@@ -11,6 +11,7 @@ class EraseConfigCLI(SwitchConfigCLI):
     """
     def __init__(self, subparsers: Action, switch: SwitchChip) -> None:
         super().__init__(subparsers, switch)
+        self.append_stop = False
 
         self._subparser = self._subparsers.add_parser(
             "erase",

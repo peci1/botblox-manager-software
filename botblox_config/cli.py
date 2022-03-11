@@ -6,8 +6,10 @@ import sys
 from typing import List, Tuple
 
 from .data_manager import (
-    EraseConfigCLI,
-    PortMirrorConfig,
+    BoardInfoCLI, EraseConfigCLI,
+    FwRevInfoCLI, PortMirrorConfig,
+    ReadConfigCLI,
+    ReadSwitchCLI,
     TagVlanConfigCLI,
     VlanConfig,
 )
@@ -154,6 +156,10 @@ def create_parser(argv: List[str] = None) -> Tuple[argparse.ArgumentParser, Swit
     commands = list()
     commands.append(TagVlanConfigCLI(subparsers, switch))
     commands.append(EraseConfigCLI(subparsers, switch))
+    commands.append(ReadSwitchCLI(subparsers, switch))
+    commands.append(ReadConfigCLI(subparsers, switch))
+    commands.append(FwRevInfoCLI(subparsers, switch))
+    commands.append(BoardInfoCLI(subparsers, switch))
 
     return parser, switch
 
@@ -177,21 +183,25 @@ def cli() -> None:
     logging.debug('------------------------------------------')
 
     # add stop command
-    data.append([100, 0, 0, 0])
+    if config.append_stop:
+        data.append([100, 0, 0, 0])
 
-    logging.debug('Data sent (inc. "stop" command): ')
-    logging.debug('------------------------------------------')
-    logging.debug(data)
-    logging.debug('------------------------------------------')
+        logging.debug('Data sent (inc. "stop" command): ')
+        logging.debug('------------------------------------------')
+        logging.debug(data)
+        logging.debug('------------------------------------------')
 
-    device_name = args.device
-    if device_name != "test":
-        writer = switch.get_config_writer(device_name)
-        is_success = writer.write(data)
+    writer = args.device
+    is_success, data = writer.write(data, config.read_back)
 
-        if is_success:
-            logging.info('Successful configuration')
-        else:
-            logging.error('Failed to configure - check logs')
+    if is_success:
+        logging.info('Successful configuration')
+        if config.read_back > 0:
+            logging.debug('Data returned (without success flag): ')
+            logging.debug('------------------------------------------')
+            logging.debug(data)
+            logging.debug('------------------------------------------')
+
+            config.process_response(data)
     else:
-        logging.info('Test device used, no data were written to any serial port')
+        logging.error('Failed to configure - check logs')
