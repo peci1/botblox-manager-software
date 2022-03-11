@@ -55,7 +55,7 @@ class BoardInfoCLI(SwitchConfigCLI):
         return [[104, 0, 0, 0]]
 
     def process_response(self, data: Any):
-        switch = "SwitchBlox Nano" if data[0] == 'n' else "SwitchBlox"
+        switch = "SwitchBlox Nano" if data[0] == ord('n') else "SwitchBlox"
         logging.info(f'The switch type is {switch}')
         print(switch)
 
