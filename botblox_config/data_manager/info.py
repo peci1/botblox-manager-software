@@ -30,6 +30,7 @@ class FwRevInfoCLI(SwitchConfigCLI):
 
     def process_response(self, data: Any):
         logging.info(f'Firmware revision is {data[0]}')
+        print(f'{data[0]}')
 
 
 class BoardInfoCLI(SwitchConfigCLI):
@@ -56,4 +57,5 @@ class BoardInfoCLI(SwitchConfigCLI):
     def process_response(self, data: Any):
         switch = "SwitchBlox Nano" if data[0] == 'n' else "SwitchBlox"
         logging.info(f'The switch type is {switch}')
+        print(switch)
 
