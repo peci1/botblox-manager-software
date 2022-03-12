@@ -69,9 +69,9 @@ class ReadSwitchCLI(SwitchConfigCLI):
     def create_configuration(self) -> List[List[int]]:
         return [[102, 1, self._cli_options['phy'], self._cli_options['reg']]]
 
-    def process_response(self, data: Any):
+    def process_response(self, data: Any) -> None:
         super().process_response(data)
-        print(f'{data}')
+        print(f'{data}')  # noqa: T001
 
 
 class ReadConfigCLI(SwitchConfigCLI):
@@ -115,7 +115,7 @@ class ReadConfigCLI(SwitchConfigCLI):
         num = 3 if 'temp' in self._cli_options and self._cli_options['temp'] else 2
         return [[102, num, self._cli_options['command'], 0]]
 
-    def process_response(self, data: Any):
-        type = "RAM" if 'temp' in self._cli_options and self._cli_options['temp'] else "EEPROM"
-        logging.info(f'Data read from {type} at position {self._cli_options["command"]} is {data}')
-        print(f'{data}')
+    def process_response(self, data: Any) -> None:
+        board_type = "RAM" if 'temp' in self._cli_options and self._cli_options['temp'] else "EEPROM"
+        logging.info(f'Data read from {board_type} at position {self._cli_options["command"]} is {data}')
+        print(f'{data}')  # noqa: T001

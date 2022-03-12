@@ -1,7 +1,6 @@
-import functools
 import logging
-from argparse import Action, Namespace, SUPPRESS
-from typing import (Any, AnyStr, Dict, List)
+from argparse import Action, Namespace
+from typing import (Any, List)
 
 from .switch_config import SwitchConfigCLI
 from ..switch import SwitchChip
@@ -28,9 +27,9 @@ class FwRevInfoCLI(SwitchConfigCLI):
     def create_configuration(self) -> List[List[int]]:
         return [[103, 0, 0, 0]]
 
-    def process_response(self, data: Any):
+    def process_response(self, data: Any) -> None:
         logging.info(f'Firmware revision is {data[0]}')
-        print(f'{data[0]}')
+        print(f'{data[0]}')  # noqa: T001
 
 
 class BoardInfoCLI(SwitchConfigCLI):
@@ -54,8 +53,7 @@ class BoardInfoCLI(SwitchConfigCLI):
     def create_configuration(self) -> List[List[int]]:
         return [[104, 0, 0, 0]]
 
-    def process_response(self, data: Any):
+    def process_response(self, data: Any) -> None:
         switch = "SwitchBlox Nano" if data[0] == ord('n') else "SwitchBlox"
         logging.info(f'The switch type is {switch}')
-        print(switch)
-
+        print(switch)  # noqa: T001

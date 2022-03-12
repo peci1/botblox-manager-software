@@ -59,5 +59,5 @@ class SwitchConfigCLI:
         """
         raise NotImplementedError()
 
-    def process_response(self, data: Any):
+    def process_response(self, data: Any) -> None:
         logging.info(f'Data read from switch is {data}')
